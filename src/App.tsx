@@ -12,6 +12,7 @@ const App = (): JSX.Element => {
 
   // current file to upload into container
   const [fileSelected, setFileSelected] = useState(null);
+  const [name, setName] = useState(null);
 
   // UI/form management
   const [uploading, setUploading] = useState(false);
@@ -22,12 +23,30 @@ const App = (): JSX.Element => {
     setFileSelected(event.target.files[0]);
   };
 
+  const onNameChange = (event: any) => {
+    // capture name
+    setName(event.target.name);
+  };
+
   const onFileUpload = async () => {
     // prepare UI
     setUploading(true);
 
+    // Prep file
+    const filename = name ?? "unknown"
+    const cleanFileName = filename.replace(/\s/g, "");
+
+
+
+    var file = fileSelected ?? new File([""], "filename");
+
+    const fileExtension = file.name.split(".").pop()
+
+    var blob = file.slice(0, file.size, file.type); 
+    var newFile = new File([blob], cleanFileName.concat(".", fileExtension!), {type: file.type});
+
     // *** UPLOAD TO AZURE STORAGE ***
-    const blobsInContainer: string[] = await uploadFileToBlob(fileSelected);
+    const blobsInContainer: string[] = await uploadFileToBlob(newFile);
 
     // prepare UI for results
     setBlobList(blobsInContainer);
@@ -41,6 +60,7 @@ const App = (): JSX.Element => {
   // display form
   const DisplayForm = () => (
     <div>
+      <input type="text" onChange={onNameChange}/>
       <input type="file" onChange={onFileChange} key={inputKey || ''} />
       <button type="submit" onClick={onFileUpload}>
         Upload!
@@ -70,7 +90,7 @@ const App = (): JSX.Element => {
 
   return (
     <div>
-      <h1>Upload file to Azure Blob Storage</h1>
+      <h1>Painswick Beacon</h1>
       {storageConfigured && !uploading && DisplayForm()}
       {storageConfigured && uploading && <div>Uploading</div>}
       <hr />
